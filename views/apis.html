@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" rel="stylesheet">
+
+  <title>APIs</title>
+  <style>
+    html, body {
+      height: 100%;
+      background-color: #f5f5f5; /* Light gray background */
+    }
+  </style>
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <div class="box">
+        <h2 class="title is-4 has-text-centered">API listing</h2>
+        <p><a href="/api/users">Users</a></p>
+      </div>
+    </div>
+  </section>
+  <footer class="footer">
+    <div class="content has-text-centered">
+        <form action="/logout" method="POST">
+            <button class="button is-danger">Logout</button>
+        </form>
+    </div>
+  </footer>
+</body>
+</html>
