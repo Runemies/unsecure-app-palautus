@@ -5,6 +5,7 @@ import connectToDB from './database.js';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import helmet from 'helmet';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,6 +48,21 @@ function isAuthenticated(req, res, next) {
     res.status(401).send('You must log in to view this page'); // Estetään pääsy
   }
 }
+
+dotenv.config({ path: './secret.env' });
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    },
+  })
+);
+console.log('SESSION_SECRET:', process.env.SESSION_SECRET);
 
 // Käynnistää palvelimen
 const PORT = process.env.PORT || 3000;
