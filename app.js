@@ -3,6 +3,8 @@ import path from 'path';
 import session from 'express-session';
 import connectToDB from './database.js';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -118,6 +120,32 @@ app.get('/api/users', async (req, res) => {
   } finally {
     await db.close();
   }
+});
+
+//update check
+
+app.get('/check-updates', (req, res) => {
+  exec('npm outdated --json', (error, stdout) => {
+    if (error) {
+      console.error(`Error executing npm outdated: ${error}`);
+      return res.status(500).json({ message: 'Error checking for updates.' });
+    }
+
+    try {
+      const outdatedPackages = JSON.parse(stdout);
+      if (Object.keys(outdatedPackages).length === 0) {
+        res.json({ message: 'All packages are up to date' });
+      } else {
+        const updates = Object.keys(outdatedPackages).map(pkg => {
+          return `${pkg} (Current: ${outdatedPackages[pkg].current}, Latest: ${outdatedPackages[pkg].latest})`;
+        }).join(', ');
+        res.json({ message: `Updates available for: ${updates}` });
+      }
+    } catch (parseError) {
+      console.error(`Error parsing npm outdated output: ${parseError}`);
+      res.status(500).json({ message: 'Error checking for updates.' });
+    }
+  });
 });
 
 
