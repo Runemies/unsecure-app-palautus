@@ -31,24 +31,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // Määritellään istuntojen käyttö
-app.use(
-  session({
-    secret: 'salaisuus', // käytetään istunnon "allekirjoituksena"
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // aseta true, jos käytät HTTPS:ää
-  })
-);
-
-// Middleware-tarkistus kirjautumista varten
-function isAuthenticated(req, res, next) {
-  if (req.session.userId) {
-    next(); // Käyttäjä on kirjautunut, jatketaan routeen
-  } else {
-    res.status(401).send('You must log in to view this page'); // Estetään pääsy
-  }
-}
-
 dotenv.config({ path: './secret.env' });
 app.use(
   session({
@@ -63,6 +45,15 @@ app.use(
   })
 );
 console.log('SESSION_SECRET:', process.env.SESSION_SECRET);
+
+// Middleware-tarkistus kirjautumista varten
+function isAuthenticated(req, res, next) {
+  if (req.session.userId) {
+    next(); // Käyttäjä on kirjautunut, jatketaan routeen
+  } else {
+    res.status(401).send('You must log in to view this page'); // Estetään pääsy
+  }
+}
 
 // Käynnistää palvelimen
 const PORT = process.env.PORT || 3000;
@@ -89,11 +80,12 @@ app.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
 
   // SQL-kysely
-  const sql = `INSERT INTO users (name, email, password) VALUES ('${name}', '${email}', '${password}')`;
+  const sql = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
   const db = await connectToDB();
 
+
   try {
-    await db.run(sql);
+    await db.run(sql, [name,email,password]);
     res.redirect('/'); // Ohjaa käyttäjä etusivulle rekisteröinnin jälkeen
   } catch (err) {
     console.error(err.message);
