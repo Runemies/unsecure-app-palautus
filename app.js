@@ -5,11 +5,11 @@ import connectToDB from './database.js';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.disable('x-powered-by')
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
