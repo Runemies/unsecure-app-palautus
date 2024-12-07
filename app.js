@@ -4,12 +4,27 @@ import session from 'express-session';
 import connectToDB from './database.js';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
+import helmet from 'helmet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 app.disable('x-powered-by')
+
+app.use(helmet());
+const csp = {
+  defaultSrc: ["'self'"], 
+  scriptSrc: ["'self'"], 
+  styleSrc: ["'self'", "'https'","'unsafe-inline'"], 
+  imgSrc: ["'self'", "data:"], 
+  connectSrc: ["'self'", "'data'"], 
+  fontSrc: ["'self'","'https'","'data'"], 
+  objectSrc: ["'none'"], 
+  upgradeInsecureRequests: [], 
+};
+
+app.use(helmet.contentSecurityPolicy({ directives: csp }));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
