@@ -7,6 +7,7 @@ import { exec } from 'child_process';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { rateLimit } from 'express-rate-limit'
+import bcrypt from 'bcrypt';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,6 +90,7 @@ app.get('/register', (req, res) => {
 // Rekisteröinnin käsittely
 app.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   // SQL-kysely
   const sql = `INSERT INTO users (name, email, password) VALUES (?, ?, ?)`;
@@ -96,7 +98,7 @@ app.post('/register', async (req, res) => {
 
 
   try {
-    await db.run(sql, [name,email,password]);
+    await db.run(sql, [name,email,hashedPassword]);
     res.redirect('/'); // Ohjaa käyttäjä etusivulle rekisteröinnin jälkeen
   } catch (err) {
     console.error(err.message);
@@ -120,9 +122,15 @@ app.post('/login', async (req, res) => {
 
   try {
     const user = await db.get(sql, [email]);
-    if (user && (password == user.password)) {
-      req.session.userId = user.id; // Asetetaan istunto kirjautumisen yhteydessä
-      res.redirect('/apis'); // Ohjaa käyttäjä /apis-sivulle
+    if (user) {
+      const match = await bcrypt.compare(password, user.password);
+      
+      if (match) {
+        req.session.userId = user.id; 
+        res.redirect('/apis'); 
+      } else {
+        res.status(401).send('Invalid email or password');
+      }
     } else {
       res.status(401).send('Invalid email or password');
     }
@@ -131,8 +139,7 @@ app.post('/login', async (req, res) => {
     res.status(500).send('Unable to log in');
   } finally {
     await db.close();
-  }
-});
+}});
 
 
 // Rajapintojen listaus, vain kirjautuneille käyttäjille
