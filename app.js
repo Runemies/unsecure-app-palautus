@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import { rateLimit } from 'express-rate-limit'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +30,16 @@ app.use(helmet.contentSecurityPolicy({ directives: csp }));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+//Rate limiter
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 min
+	limit: 100, 
+	standardHeaders: 'draft-7', 
+	legacyHeaders: false, 
+  message: "Too many requests, please try again later",
+})
+app.use(limiter)
 
 // Määritellään istuntojen käyttö
 dotenv.config({ path: './secret.env' });
